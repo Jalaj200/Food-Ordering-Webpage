@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Crave | Food Ordering{% endblock %}</title>
+    <!-- Add FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{% url 'menu:menu_list' %}" class="nav-brand">
+            <i class="fa-solid fa-burger"></i> Crave.
+        </a>
+        <div class="nav-links">
+            <a href="{% url 'menu:menu_list' %}" class="nav-link">Our Menu</a>
+            <a href="{% url 'cart:cart_detail' %}" class="cart-icon-wrapper">
+                <i class="fa-solid fa-cart-shopping"></i> 
+                <span>Cart</span>
+                {% if cart|length > 0 %}
+                <span class="cart-badge">{{ cart|length }}</span>
+                {% endif %}
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Crave Food Ordering. All rights reserved.</p>
+    </footer>
+</body>
+</html>
