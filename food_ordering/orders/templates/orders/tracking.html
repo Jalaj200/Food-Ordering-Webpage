@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Track Order #{{ order.id }} | Crave{% endblock %}
+
+{% block content %}
+<div class="tracker-container">
+    <h1 style="margin-bottom: 0.5rem;">Order Confirmation</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Order ID: #{{ order.id }} &bull; Placed on {{ order.created_at|date:"M d, Y" }}</p>
+    
+    <div style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid rgba(46, 204, 113, 0.2);">
+        <i class="fa-solid fa-circle-check"></i> Thanks {{ order.first_name }}! Your order has been placed successfully.
+    </div>
+
+    <!-- Tracker -->
+    <div class="milestones">
+        <div class="milestone {% if order.status in 'Pending,Preparing,Out for Delivery,Delivered' %}active{% endif %}">
+            <div class="milestone-icon"><i class="fa-solid fa-receipt"></i></div>
+            <span>Pending</span>
+        </div>
+        
+        <div class="milestone {% if order.status in 'Preparing,Out for Delivery,Delivered' %}active{% endif %}">
+            <div class="milestone-icon"><i class="fa-solid fa-fire-burner"></i></div>
+            <span>Preparing</span>
+        </div>
+        
+        <div class="milestone {% if order.status in 'Out for Delivery,Delivered' %}active{% endif %}">
+            <div class="milestone-icon"><i class="fa-solid fa-motorcycle"></i></div>
+            <span>Out for Delivery</span>
+        </div>
+        
+        <div class="milestone {% if order.status == 'Delivered' %}active{% endif %}">
+            <div class="milestone-icon"><i class="fa-solid fa-house-chimney"></i></div>
+            <span>Delivered</span>
+        </div>
+    </div>
+    
+    <div style="margin-top: 4rem; text-align: left; background: var(--surface-color); padding: 2rem; border-radius: 8px;">
+        <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">Order Details</h3>
+        <p style="margin-bottom: 0.5rem;"><i class="fa-solid fa-location-dot" style="color: var(--primary-color); width: 20px;"></i> {{ order.address }}, {{ order.city }} {{ order.postal_code }}</p>
+        <p style="margin-bottom: 1.5rem;"><i class="fa-solid fa-envelope" style="color: var(--primary-color); width: 20px;"></i> {{ order.email }}</p>
+        
+        <h4 style="margin-bottom: 0.5rem;">Items ordered:</h4>
+        <ul style="list-style: none;">
+            {% for item in order.items.all %}
+            <li style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                <span>{{ item.quantity }}x {{ item.product.name }}</span>
+                <span>₹{{ item.get_cost }}</span>
+            </li>
+            {% endfor %}
+            <li style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-weight: bold; font-size: 1.2rem; color: var(--text-primary);">
+                <span>Total Paid</span>
+                <span style="color: var(--primary-color);">₹{{ order.get_total_cost }}</span>
+            </li>
+        </ul>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'menu:menu_list' %}" class="btn btn-outline">Back to Menu</a>
+    </div>
+</div>
+{% endblock %}

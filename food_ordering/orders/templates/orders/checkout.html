@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout | Crave{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;"><i class="fa-solid fa-credit-card"></i> Checkout</h1>
+
+<div class="checkout-grid">
+    <div class="checkout-form cart-table-wrapper">
+        <h2 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">Delivery Details</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">First Name</label>
+                    <input type="text" name="first_name" required placeholder="John">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Last Name</label>
+                    <input type="text" name="last_name" required placeholder="Doe">
+                </div>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Email</label>
+                <input type="email" name="email" required placeholder="john@example.com">
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Delivery Address</label>
+                <textarea name="address" rows="3" required placeholder="123 Food Street, Apt 4B"></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">City</label>
+                    <input type="text" name="city" required placeholder="New York">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Postal Code</label>
+                    <input type="text" name="postal_code" required placeholder="10001">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem; margin-top: 1rem;">Place Order Now</button>
+        </form>
+    </div>
+    
+    <div class="order-summary summary-card" style="margin-top: 0; align-self: start;">
+        <h3 style="margin-bottom: 1.5rem;">Order Summary</h3>
+        <ul style="list-style: none;">
+            {% for item in cart %}
+            <li style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 1rem;">
+                <span>{{ item.quantity }}x {{ item.product.name }}</span>
+                <span>₹{{ item.total_price }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+            <strong style="font-size: 1.2rem;">Total</strong>
+            <strong style="font-size: 1.8rem; color: var(--primary-color);">₹{{ cart.get_total_price }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}
