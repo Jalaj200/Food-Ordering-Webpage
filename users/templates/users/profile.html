@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Crave{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="profile-summary">
+            <div class="profile-pic-wrapper">
+                {% if request.user.profile.profile_picture %}
+                <img src="{{ request.user.profile.profile_picture.url }}" alt="Profile" class="profile-pic">
+                {% else %}
+                <div class="profile-pic-placeholder">
+                    {{ request.user.first_name|default:request.user.username|make_list|first|upper }}
+                </div>
+                {% endif %}
+            </div>
+            <h2 class="profile-name">{{ request.user.first_name|default:request.user.username }}</h2>
+            <p class="profile-email">{{ request.user.email }}</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="?tab=profile" class="sidebar-link {% if active_tab == 'profile' %}active{% endif %}">
+                <i class="fa-regular fa-circle-user"></i> Profile
+            </a>
+            <a href="?tab=addresses" class="sidebar-link {% if active_tab == 'addresses' %}active{% endif %}">
+                <i class="fa-solid fa-location-dot"></i> Saved Addresses
+            </a>
+            <a href="?tab=orders" class="sidebar-link {% if active_tab == 'orders' %}active{% endif %}">
+                <i class="fa-solid fa-clock-rotate-left"></i> Order History
+            </a>
+            <a href="?tab=security" class="sidebar-link {% if active_tab == 'security' %}active{% endif %}">
+                <i class="fa-solid fa-shield-halved"></i> Security
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="auth-alert {% if message.tags == 'error' %}auth-alert-error{% else %}auth-alert-success{% endif %}">
+                    <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- PROFILE TAB -->
+        <section class="tab-pane {% if active_tab == 'profile' %}active{% endif %}" id="profile-tab">
+            <h2 class="dashboard-title">Personal Information</h2>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="update_profile" value="1">
+                
+                <div class="dashboard-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        {{ user_form.first_name }}
+                        {{ user_form.first_name.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        {{ user_form.email }}
+                        {{ user_form.email.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        {{ profile_form.phone_number }}
+                        {{ profile_form.phone_number.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Profile Picture</label>
+                        {{ profile_form.profile_picture }}
+                        {{ profile_form.profile_picture.errors }}
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ADDRESSES TAB -->
+        <section class="tab-pane {% if active_tab == 'addresses' %}active{% endif %}" id="addresses-tab">
+            <h2 class="dashboard-title">Saved Addresses</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                {% for address in addresses %}
+                <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.5rem; position: relative;">
+                    {% if address.is_default %}
+                    <span class="badge badge-delivered" style="position: absolute; top: 1rem; right: 1rem;">Default</span>
+                    {% endif %}
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-location-dot text-accent" style="margin-right: 0.5rem;"></i>Delivery Address</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 0.2rem;">{{ address.street_address }}</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;"><i class="fa-solid fa-pen"></i> Edit</button>
+                        <button class="btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.85rem; color: #ff4d4f; border-color: #ff4d4f;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color: var(--text-secondary);">You have no saved addresses yet.</p>
+                {% endfor %}
+            </div>
+
+            <h3 style="font-size: 1.2rem; margin-bottom: 1rem;">Add New Address</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="add_address" value="1">
+                
+                <div class="dashboard-form-grid">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Street Address</label>
+                        {{ address_form.street_address }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        {{ address_form.city }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">State</label>
+                        {{ address_form.state }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Postal Code</label>
+                        {{ address_form.postal_code }}
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem;">
+                        {{ address_form.is_default }} <label class="form-label" style="margin: 0;">Set as default address</label>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button type="submit" class="btn-primary">Save Address</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ORDERS TAB -->
+        <section class="tab-pane {% if active_tab == 'orders' %}active{% endif %}" id="orders-tab">
+            <h2 class="dashboard-title">Order History</h2>
+
+            {% if not orders %}
+            <div class="empty-state">
+                <i class="fa-solid fa-receipt empty-state-icon"></i>
+                <h3 class="empty-state-title">No orders yet</h3>
+                <p class="empty-state-text">Looks like you haven't placed any orders yet. Discover delicious food now!</p>
+                <a href="{% url 'menu:menu_list' %}" class="btn-primary" style="display: inline-block;">Browse Menu</a>
+            </div>
+            {% else %}
+                {% for order in orders %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">Order #{{ order.id }}</div>
+                            <div class="order-date">{{ order.created_at|date:"F j, Y, g:i a" }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="margin-bottom: 0.5rem;">
+                                {% if order.status == 'Delivered' %}
+                                    <span class="badge badge-delivered">Delivered</span>
+                                {% elif order.status == 'Preparing' %}
+                                    <span class="badge badge-preparing">Preparing</span>
+                                {% elif order.status == 'Out for Delivery' %}
+                                    <span class="badge badge-out">Out for Delivery</span>
+                                {% elif order.status == 'Cancelled' %}
+                                    <span class="badge badge-cancelled">Cancelled</span>
+                                {% elif order.status == 'Confirmed' %}
+                                    <span class="badge badge-confirmed">Confirmed</span>
+                                {% else %}
+                                    <span class="badge badge-pending">{{ order.status }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="order-amount">₹{{ order.get_total_cost }}</div>
+                        </div>
+                    </div>
+
+                    <div class="order-items-preview">
+                        {% for item in order.items.all %}
+                        <div class="order-item-thumb">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="order-item-img">
+                            {% else %}
+                            <div class="order-item-img" style="background: var(--bg-color); display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            {% endif %}
+                            <div class="order-item-details">
+                                <div class="order-item-name">{{ item.quantity }}x {{ item.product.name }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="order-actions">
+                        <button type="button" class="btn-primary" onclick="openOrderModal('{{ order.id }}')">View Details</button>
+                        {% if order.status == 'Delivered' %}
+                        <button type="button" class="btn-outline"><i class="fa-solid fa-star"></i> Leave Review</button>
+                        <button type="button" class="btn-outline"><i class="fa-solid fa-rotate-right"></i> Reorder</button>
+                        {% endif %}
+                        <button type="button" class="btn-outline"><i class="fa-solid fa-download"></i> Invoice</button>
+                    </div>
+                </div>
+
+                <!-- Hidden data for modal injection -->
+                <script type="application/json" id="order-data-{{ order.id }}">
+                {
+                    "id": "{{ order.id }}",
+                    "date": "{{ order.created_at|date:'F j, Y, g:i a' }}",
+                    "status": "{{ order.status }}",
+                    "payment_method": "{{ order.payment_method }}",
+                    "payment_status": "{{ order.payment_status }}",
+                    "razorpay_payment_id": "{{ order.razorpay_payment_id|default:'' }}",
+                    "address": "{{ order.address }}, {{ order.city }} {{ order.postal_code }}",
+                    "subtotal": "{{ order.get_subtotal }}",
+                    "delivery_fee": "{{ order.delivery_fee }}",
+                    "taxes": "{{ order.taxes }}",
+                    "total": "{{ order.get_total_cost }}",
+                    "items": [
+                        {% for item in order.items.all %}
+                        {
+                            "name": "{{ item.product.name|escapejs }}",
+                            "quantity": {{ item.quantity }},
+                            "price": "{{ item.price }}",
+                            "cost": "{{ item.get_cost }}"
+                        }{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }
+                </script>
+                {% endfor %}
+            {% endif %}
+        </section>
+
+        <!-- SECURITY TAB -->
+        <section class="tab-pane {% if active_tab == 'security' %}active{% endif %}" id="security-tab">
+            <h2 class="dashboard-title">Security Settings</h2>
+            
+            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.5rem; margin-bottom: 2rem;">
+                <h3 style="font-size: 1.2rem; margin-bottom: 1rem;"><i class="fa-solid fa-lock text-accent" style="margin-right: 0.5rem;"></i> Change Password</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Update your password to keep your account secure.</p>
+                <button class="btn-outline">Change Password</button>
+            </div>
+
+            <div style="border: 1px solid #ffccc7; background: #fff2f0; border-radius: var(--radius-sm); padding: 1.5rem;">
+                <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: #cf1322;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 0.5rem;"></i> Danger Zone</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Once you delete your account, there is no going back. Please be certain.</p>
+                <button class="btn-danger btn-outline" style="border: none;">Delete Account</button>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal-overlay" id="orderModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeOrderModal()"><i class="fa-solid fa-xmark"></i></button>
+        <h2 class="dashboard-title" style="margin-bottom: 1rem; font-size: 1.5rem;">Order Details</h2>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+            <div><strong style="color: var(--text-primary);">Order ID:</strong> <span id="modalOrderId"></span></div>
+            <div id="modalOrderDate"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; background: var(--bg-color); padding: 1rem; border-radius: var(--radius-sm);">
+            <div>
+                <div style="font-weight: 600; margin-bottom: 0.3rem;">Delivery Address</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;" id="modalOrderAddress"></div>
+            </div>
+            <div>
+                <div style="font-weight: 600; margin-bottom: 0.3rem;">Payment details</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;" id="modalOrderPayment"></div>
+            </div>
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Order Items</h3>
+        <div id="modalOrderItems" style="margin-bottom: 1.5rem;">
+            <!-- Items injected via JS -->
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <div class="receipt-row">
+                <span>Subtotal</span>
+                <span>₹<span id="modalOrderSubtotal"></span></span>
+            </div>
+            <div class="receipt-row">
+                <span>Delivery Fee</span>
+                <span>₹<span id="modalOrderDelivery"></span></span>
+            </div>
+            <div class="receipt-row">
+                <span>Taxes</span>
+                <span>₹<span id="modalOrderTaxes"></span></span>
+            </div>
+            <div class="receipt-row bold">
+                <span>Total Amount</span>
+                <span>₹<span id="modalOrderTotal"></span></span>
+            </div>
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin: 1.5rem 0 1rem;">Order Timeline</h3>
+        <div class="order-timeline">
+            <div class="timeline-item active" id="tl-pending">
+                <div class="timeline-title">Order Placed</div>
+                <div class="timeline-time">Pending verification</div>
+            </div>
+            <div class="timeline-item" id="tl-confirmed">
+                <div class="timeline-title">Order Confirmed</div>
+                <div class="timeline-time">Restaurant accepted your order</div>
+            </div>
+            <div class="timeline-item" id="tl-preparing">
+                <div class="timeline-title">Preparing</div>
+                <div class="timeline-time">Your food is being prepared</div>
+            </div>
+            <div class="timeline-item" id="tl-out">
+                <div class="timeline-title">Out for Delivery</div>
+                <div class="timeline-time">Driver is on the way</div>
+            </div>
+            <div class="timeline-item" id="tl-delivered">
+                <div class="timeline-title">Delivered</div>
+                <div class="timeline-time">Enjoy your meal!</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function openOrderModal(orderId) {
+        const dataElement = document.getElementById('order-data-' + orderId);
+        if (!dataElement) return;
+        
+        const data = JSON.parse(dataElement.textContent);
+        
+        document.getElementById('modalOrderId').textContent = '#' + data.id;
+        document.getElementById('modalOrderDate').textContent = data.date;
+        document.getElementById('modalOrderAddress').textContent = data.address;
+        
+        let paymentStr = `${data.payment_method} (${data.payment_status})`;
+        if (data.razorpay_payment_id) {
+            paymentStr += `<br><span style="font-size:0.8rem; color:var(--text-secondary);">Txn ID: ${data.razorpay_payment_id}</span>`;
+        }
+        document.getElementById('modalOrderPayment').innerHTML = paymentStr;
+        
+        // Populate items
+        const itemsContainer = document.getElementById('modalOrderItems');
+        itemsContainer.innerHTML = '';
+        data.items.forEach(item => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'space-between';
+            row.style.marginBottom = '0.5rem';
+            row.style.fontSize = '0.95rem';
+            
+            row.innerHTML = `
+                <div><span style="font-weight: 600; color: var(--primary-color); margin-right: 0.5rem;">${item.quantity}x</span> ${item.name}</div>
+                <div>₹${item.cost}</div>
+            `;
+            itemsContainer.appendChild(row);
+        });
+        
+        // Populate amounts
+        document.getElementById('modalOrderSubtotal').textContent = data.subtotal;
+        document.getElementById('modalOrderDelivery').textContent = data.delivery_fee;
+        document.getElementById('modalOrderTaxes').textContent = data.taxes;
+        document.getElementById('modalOrderTotal').textContent = data.total;
+
+        // Update Timeline
+        const statuses = ['Pending', 'Confirmed', 'Preparing', 'Out for Delivery', 'Delivered'];
+        const currentIdx = statuses.indexOf(data.status);
+        
+        // Hide all first
+        ['tl-pending', 'tl-confirmed', 'tl-preparing', 'tl-out', 'tl-delivered'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+
+        if (data.status === 'Cancelled') {
+            document.getElementById('tl-pending').style.display = 'block';
+            document.getElementById('tl-pending').innerHTML = '<div class="timeline-title" style="color: #cf1322;">Order Cancelled</div><div class="timeline-time">This order was cancelled</div>';
+            document.getElementById('tl-pending').classList.add('active');
+        } else {
+            // Show timeline up to Delivered
+            const map = {
+                'Pending': 'tl-pending',
+                'Confirmed': 'tl-confirmed',
+                'Preparing': 'tl-preparing',
+                'Out for Delivery': 'tl-out',
+                'Delivered': 'tl-delivered'
+            };
+            
+            statuses.forEach((s, idx) => {
+                const el = document.getElementById(map[s]);
+                el.style.display = 'block';
+                // Reset content if previously modified by Cancelled
+                if (s === 'Pending') el.innerHTML = '<div class="timeline-title">Order Placed</div><div class="timeline-time">Pending verification</div>';
+                
+                if (idx <= currentIdx) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        document.getElementById('orderModal').classList.add('active');
+    }
+
+    function closeOrderModal() {
+        document.getElementById('orderModal').classList.remove('active');
+    }
+
+    // Close modal on click outside
+    document.getElementById('orderModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeOrderModal();
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful - Crave{% endblock %}
+
+{% block content %}
+<div style="background: var(--bg-color); padding: 5rem 5%; min-height: calc(100vh - 80px); display: flex; justify-content: center; align-items: center;">
+    
+    <div style="background: var(--card-bg); border-radius: var(--radius); padding: 3rem; box-shadow: var(--shadow); text-align: center; max-width: 500px; width: 100%;">
+        
+        <div style="width: 80px; height: 80px; background: #f6ffed; color: #52c41a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 0 auto 1.5rem; box-shadow: 0 4px 15px rgba(82, 196, 26, 0.2);">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        
+        <h2 style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--text-primary);">Payment Successful!</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Thank you for your order. Your delicious food is being prepared right now.</p>
+        
+        <div style="background: var(--bg-color); border-radius: var(--radius-sm); padding: 1.5rem; text-align: left; margin-bottom: 2rem; border: 1px dashed var(--border-color);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: var(--text-secondary);">Order Number</span>
+                <span style="font-weight: 600;">#{{ order.id }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: var(--text-secondary);">Amount Paid</span>
+                <span style="font-weight: 600;">₹{{ order.get_total_cost|floatformat:2 }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-secondary);">Transaction ID</span>
+                <span style="font-weight: 600; font-family: monospace;">{{ order.razorpay_payment_id }}</span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; flex-direction: column;">
+            <a href="{% url 'users:profile' %}?tab=orders" class="btn-primary" style="padding: 1rem; border-radius: var(--radius-sm); text-align: center; font-weight: 600;">Track My Order</a>
+            <a href="{% url 'menu:menu_list' %}" class="btn-outline" style="padding: 1rem; border-radius: var(--radius-sm); text-align: center; font-weight: 600; border: 1px solid var(--border-color);">Continue Shopping</a>
+        </div>
+        
+    </div>
+
+</div>
+{% endblock %}

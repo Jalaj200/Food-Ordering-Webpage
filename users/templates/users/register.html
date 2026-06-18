@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - Crave{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="fa-solid fa-utensils"></i> Crave
+            </div>
+            <h1 class="auth-title">Create Account</h1>
+            <p class="auth-subtitle">Join us to start ordering delicious food.</p>
+        </div>
+
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="auth-alert auth-alert-error">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>{{ field.label }}: {{ error }}</span>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="auth-alert auth-alert-error">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ error }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'users:register' %}" class="auth-form" id="registerForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}" class="form-label">Full Name</label>
+                {{ form.first_name }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                {{ form.username }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                {{ form.email }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number <span style="font-weight:400; color:var(--text-secondary)">(Optional)</span></label>
+                {{ form.phone_number }}
+            </div>
+
+            <!-- Django's UserCreationForm creates password fields usually named id_password1 and id_password2 or similar -->
+            {% for field in form %}
+                {% if 'pass' in field.name|lower %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        <div class="password-input-wrapper">
+                            {{ field }}
+                            <i class="fa-regular fa-eye password-toggle toggle-reg-pass"></i>
+                        </div>
+                        {% if '1' in field.name %}
+                        <div class="password-strength-wrapper">
+                            <div class="password-strength-meter">
+                                <div class="password-strength-fill" id="strengthFill"></div>
+                            </div>
+                            <div class="password-strength-text" id="strengthText">Weak</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="form-options" style="margin-top: 0.5rem;">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" required class="form-checkbox" id="termsCheck">
+                    <span>I agree to the <a href="#" class="forgot-password-link">Terms & Conditions</a> and <a href="#" class="forgot-password-link">Privacy Policy</a></span>
+                </label>
+            </div>
+
+            <button type="submit" class="auth-submit-btn" id="submitBtn">Create Account</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{% url 'users:login' %}" class="auth-link">Sign In</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Password toggles
+        const toggleButtons = document.querySelectorAll(".toggle-reg-pass");
+        
+        toggleButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                const input = this.previousElementSibling;
+                const type = input.getAttribute("type") === "password" ? "text" : "password";
+                input.setAttribute("type", type);
+                
+                this.classList.toggle("fa-eye");
+                this.classList.toggle("fa-eye-slash");
+            });
+        });
+
+        // Password strength meter
+        const passwordInputs = document.querySelectorAll("input[type='password']");
+        let mainPasswordInput = null;
+        
+        // Find the main password input (usually first one)
+        if (passwordInputs.length > 0) {
+            mainPasswordInput = passwordInputs[0];
+        }
+
+        const strengthFill = document.getElementById("strengthFill");
+        const strengthText = document.getElementById("strengthText");
+
+        if (mainPasswordInput && strengthFill && strengthText) {
+            mainPasswordInput.addEventListener("input", function() {
+                const val = this.value;
+                let strength = 0;
+
+                if (val.length > 5) strength += 1;
+                if (val.length > 8) strength += 1;
+                if (/[A-Z]/.test(val)) strength += 1;
+                if (/[0-9]/.test(val)) strength += 1;
+                if (/[^A-Za-z0-9]/.test(val)) strength += 1;
+
+                strengthFill.className = "password-strength-fill"; // reset
+                
+                if (val.length === 0) {
+                    strengthFill.style.width = "0%";
+                    strengthText.textContent = "";
+                } else if (strength <= 2) {
+                    strengthFill.classList.add("strength-weak");
+                    strengthText.textContent = "Weak";
+                    strengthText.style.color = "#ff4d4f";
+                } else if (strength === 3 || strength === 4) {
+                    strengthFill.classList.add("strength-medium");
+                    strengthText.textContent = "Good";
+                    strengthText.style.color = "#faad14";
+                } else {
+                    strengthFill.classList.add("strength-strong");
+                    strengthText.textContent = "Strong";
+                    strengthText.style.color = "#52c41a";
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

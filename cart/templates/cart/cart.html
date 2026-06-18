@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Your Cart | Crave{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem; font-size: 2.2rem; display: flex; align-items: center; gap: 0.75rem;">
+    <i class="fa-solid fa-bag-shopping" style="color: var(--primary-color);"></i> Your Cart
+</h1>
+
+{% if cart|length > 0 %}
+<div class="cart-page-grid">
+    <!-- Left Section: Cart Items List -->
+    <div class="cart-items-card">
+        {% for item in cart %}
+        {% with product=item.product %}
+        <div class="cart-item-row" id="cart-item-{{ product.id }}">
+            <!-- Item Image -->
+            <div class="cart-item-media">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                <i class="fa-solid {{ product.category.icon }}"></i>
+                {% endif %}
+            </div>
+            
+            <!-- Item Info -->
+            <div class="cart-item-info">
+                <h3>{{ product.name }}</h3>
+                <div class="cart-item-price-unit">₹{{ item.price }} each</div>
+            </div>
+            
+            <!-- Actions & Quantity -->
+            <div class="cart-item-actions-wrapper">
+                <!-- Quantity Stepper Form -->
+                <form action="{% url 'cart:cart_add' product.id %}" method="post" class="quantity-form" id="stepper-form-{{ product.id }}">
+                    {% csrf_token %}
+                    <div class="premium-quantity-stepper">
+                        <button type="button" class="stepper-btn decrement-btn" data-product-id="{{ product.id }}">-</button>
+                        <input type="number" name="quantity" id="quantity-input-{{ product.id }}" value="{{ item.quantity }}" min="1" readonly>
+                        <input type="hidden" name="override" value="True">
+                        <button type="button" class="stepper-btn increment-btn" data-product-id="{{ product.id }}">+</button>
+                    </div>
+                </form>
+                
+                <!-- Line Total -->
+                <span class="cart-item-total-price">₹{{ item.total_price }}</span>
+                
+                <!-- Remove Item Form -->
+                <form action="{% url 'cart:cart_remove' product.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-remove-item" title="Remove {{ product.name }}">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    
+    <!-- Right Section: Bill Details & CTA -->
+    <div class="cart-summary-sidebar">
+        <!-- Mock Coupon Widget -->
+        <div class="coupon-widget">
+            <i class="fa-solid fa-tags"></i>
+            <div class="coupon-widget-content">
+                <h4>Apply Coupon</h4>
+                <p>Save more with offers available for you</p>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="margin-left: auto; font-size: 0.9rem; opacity: 0.6;"></i>
+        </div>
+
+        <!-- Bill Details Card -->
+        <div class="bill-details-card">
+            <h3>Bill Details</h3>
+            <div class="bill-row">
+                <span class="bill-row-label">Item Total</span>
+                <span class="bill-row-val">₹{{ cart.get_total_price }}</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-row-label">Delivery Partner Fee</span>
+                <span class="bill-row-val">At Checkout</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-row-label">Taxes and Charges</span>
+                <span class="bill-row-val">At Checkout</span>
+            </div>
+            <div class="bill-divider"></div>
+            <div class="bill-row grand-total">
+                <span class="bill-row-label">Subtotal</span>
+                <span class="bill-row-val">₹{{ cart.get_total_price }}</span>
+            </div>
+            
+            <a href="{% url 'orders:order_create' %}" class="btn btn-primary btn-block" style="font-size: 1.1rem; padding: 1rem; margin-top: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Quantity Stepper Interactivity Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Find all steppers
+        const decrementBtns = document.querySelectorAll('.decrement-btn');
+        const incrementBtns = document.querySelectorAll('.increment-btn');
+
+        decrementBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                const input = document.getElementById('quantity-input-' + productId);
+                const form = document.getElementById('stepper-form-' + productId);
+                let val = parseInt(input.value);
+                if (val > 1) {
+                    input.value = val - 1;
+                    form.submit();
+                }
+            });
+        });
+
+        incrementBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                const input = document.getElementById('quantity-input-' + productId);
+                const form = document.getElementById('stepper-form-' + productId);
+                let val = parseInt(input.value);
+                input.value = val + 1;
+                form.submit();
+            });
+        });
+    });
+</script>
+{% else %}
+<!-- Empty Cart State -->
+<div class="empty-state-card">
+    <div class="empty-state-icon">
+        <i class="fa-solid fa-basket-shopping"></i>
+    </div>
+    <h2>Your cart is empty</h2>
+    <p>Good food is always cooking! Go ahead, order some yummy items from the menu.</p>
+    <a href="{% url 'menu:menu_list' %}" class="btn btn-primary" style="padding: 0.9rem 2.2rem;">Browse Menu</a>
+</div>
+{% endif %}
+{% endblock %}

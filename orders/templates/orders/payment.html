@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment - Crave{% endblock %}
+
+{% block content %}
+<div style="background: var(--bg-color); padding: 5rem 5%; min-height: calc(100vh - 80px); display: flex; justify-content: center; align-items: center;">
+    
+    <div style="background: var(--card-bg); border-radius: var(--radius); padding: 3rem; box-shadow: var(--shadow); text-align: center; max-width: 500px; width: 100%;">
+        <div style="width: 80px; height: 80px; background: var(--primary-light); color: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem;">
+            <i class="fa-solid fa-credit-card"></i>
+        </div>
+        
+        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text-primary);">Complete your payment</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Please do not refresh the page or click back while the payment is processing.</p>
+        
+        <div style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 2rem;">
+            ₹{{ order.get_total_cost|floatformat:2 }}
+        </div>
+
+        <!-- Hidden form that gets submitted after Razorpay returns success -->
+        <form action="{% url 'orders:payment_verify' %}" method="POST" id="razorpay-form">
+            <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+            <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+            <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+        </form>
+
+        <button id="rzp-button1" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: var(--radius-sm); border: none; background: #0c1a30; color: white; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.8rem; box-shadow: 0 4px 15px rgba(12, 26, 48, 0.3); transition: transform 0.2s;">
+            <i class="fa-solid fa-shield-halved"></i> Pay with Razorpay
+        </button>
+
+        <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+            <a href="{% url 'orders:order_tracking' order.id %}" style="color: var(--text-secondary); text-decoration: underline;">Cancel and return to order</a>
+        </p>
+    </div>
+
+</div>
+
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+var options = {
+    "key": "{{ razorpay_key_id }}", 
+    "amount": "{{ amount_in_paise }}", 
+    "currency": "INR",
+    "name": "Crave Food Delivery",
+    "description": "Payment for Order #{{ order.id }}",
+    "image": "{% static 'images/logo.png' %}", // Assuming there is a logo or it gracefully falls back
+    "order_id": "{{ order.razorpay_order_id }}", 
+    "handler": function (response){
+        // Populate hidden fields and submit form to our verify endpoint
+        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+        document.getElementById('razorpay_signature').value = response.razorpay_signature;
+        document.getElementById('razorpay-form').submit();
+    },
+    "prefill": {
+        "name": "{{ order.first_name }} {{ order.last_name }}",
+        "email": "{{ order.email }}",
+        "contact": "{{ order.user.profile.phone_number|default:'' }}"
+    },
+    "theme": {
+        "color": "#FF4D5A"
+    },
+    "modal": {
+        "ondismiss": function(){
+            console.log('Checkout form closed');
+        }
+    }
+};
+
+var rzp1 = new Razorpay(options);
+
+// Automatically click the button when the page loads for a seamless experience
+window.onload = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+
+document.getElementById('rzp-button1').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+</script>
+{% endblock %}

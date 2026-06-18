@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ category.name }} | Crave{% endblock %}
+
+{% block content %}
+<!-- Category Hero -->
+<div class="category-hero">
+    <div class="category-hero-icon">
+        <i class="fa-solid {{ category.icon }}"></i>
+    </div>
+    <h1 class="category-hero-title">{{ category.name }}</h1>
+    <p class="category-hero-desc">{{ category.description }}</p>
+    <span class="category-hero-count">{{ items.count }} dish{{ items.count|pluralize:"es" }} available</span>
+</div>
+
+<!-- Breadcrumb -->
+<nav class="breadcrumb">
+    <a href="{% url 'menu:menu_list' %}"><i class="fa-solid fa-house"></i> Menu</a>
+    <i class="fa-solid fa-chevron-right"></i>
+    <span>{{ category.name }}</span>
+</nav>
+
+<!-- Other Categories (horizontal scroll) -->
+<div class="other-categories-bar">
+    {% for cat in categories %}
+    {% if cat.slug != category.slug %}
+    <a href="{% url 'menu:category_detail' cat.slug %}" class="other-category-chip">
+        <i class="fa-solid {{ cat.icon }}"></i>
+        {{ cat.name }}
+    </a>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<!-- Menu Items Grid -->
+<div class="menu-grid">
+    {% for item in items %}
+    <div class="menu-card" id="menu-item-{{ item.id }}">
+        <div class="menu-img-wrapper">
+            {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.name }}" loading="lazy">
+            {% else %}
+            <div class="menu-img-placeholder">
+                <i class="fa-solid {{ category.icon }}"></i>
+            </div>
+            {% endif %}
+            {% if item.is_popular %}
+            <span class="popular-badge"><i class="fa-solid fa-fire"></i> Popular</span>
+            {% endif %}
+        </div>
+        <div class="menu-content">
+            <h3 class="menu-title">{{ item.name }}</h3>
+            <p class="menu-desc">{{ item.description|truncatechars:120 }}</p>
+            <div class="menu-footer">
+                <span class="menu-price">₹{{ item.price }}</span>
+                <form action="{% url 'cart:cart_add' item.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-primary btn-add-cart">
+                        <i class="fa-solid fa-plus"></i> Add to Cart
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="menu-empty-state">
+        <i class="fa-solid fa-plate-wheat"></i>
+        <h2>Coming Soon!</h2>
+        <p>Our chefs are crafting new dishes for this category.</p>
+        <a href="{% url 'menu:menu_list' %}" class="btn btn-outline">Back to Menu</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

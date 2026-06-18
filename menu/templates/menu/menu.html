@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Menu | Crave{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="menu-hero-banner">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">Delicious Meals<br>Delivered <span class="hero-accent">Fast</span></h1>
+        <p class="hero-subtitle">Handcrafted to satisfy your cravings. Order your favorite dishes online and enjoy hot, fresh food delivered right to your doorstep.</p>
+        <div class="hero-cta-group">
+            <a href="#menu-items-section" class="btn btn-primary hero-btn-primary" id="hero-cta-order">
+                <i class="fa-solid fa-basket-shopping"></i> Order Now
+            </a>
+            <a href="#menu-items-section" class="btn btn-outline-white hero-btn-secondary" id="hero-cta-explore">
+                Explore Menu
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="menu-layout-container">
+    <!-- Sidebar: Category List & Suggestions -->
+    <aside class="menu-sidebar">
+        <h2 class="sidebar-heading">
+            <i class="fa-solid fa-compass"></i> Categories
+        </h2>
+        <div class="category-filter-bar vertical">
+            <a href="{% url 'menu:menu_list' %}" 
+               class="category-pill {% if not selected_category %}active{% endif %}" id="filter-all">
+                <div class="pill-icon-wrapper">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
+                <span class="pill-name">All Items</span>
+                <span class="pill-count">{{ all_items_count }}</span>
+            </a>
+            {% for cat in categories %}
+            <a href="{% url 'menu:menu_list' %}?category={{ cat.slug }}" 
+               class="category-pill {% if selected_category == cat.slug %}active{% endif %}" 
+               id="filter-{{ cat.slug }}">
+                <div class="pill-icon-wrapper">
+                    <i class="fa-solid {{ cat.icon }}"></i>
+                </div>
+                <span class="pill-name">{{ cat.name }}</span>
+                <span class="pill-count">{{ cat.items.count }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        <button class="btn-suggest-category" id="btn-suggest-category">
+            <i class="fa-solid fa-lightbulb"></i> Suggest Category
+        </button>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="menu-main-content">
+        <!-- Selected Category Header -->
+        {% if selected_category %}
+        {% for cat in categories %}
+        {% if cat.slug == selected_category %}
+        <div class="selected-category-header">
+            <div class="selected-category-icon">
+                <i class="fa-solid {{ cat.icon }}"></i>
+            </div>
+            <div>
+                <h2>{{ cat.name }}</h2>
+                <p>{{ cat.description }}</p>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <!-- Menu Items Grid -->
+        <section class="menu-items-section" id="menu-items-section">
+            {% if not selected_category %}
+            <h2 class="section-heading">
+                <i class="fa-solid fa-fire-flame-curved"></i> All Dishes
+            </h2>
+            {% endif %}
+
+            <div class="menu-grid">
+                {% for item in items %}
+                <div class="menu-card" id="menu-item-{{ item.id }}">
+                    <div class="menu-img-wrapper">
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}" loading="lazy">
+                        {% else %}
+                        <div class="menu-img-placeholder">
+                            <i class="fa-solid {{ item.category.icon }}"></i>
+                        </div>
+                        {% endif %}
+                        {% if item.is_popular %}
+                        <span class="popular-badge"><i class="fa-solid fa-fire"></i> Popular</span>
+                        {% endif %}
+                        <span class="category-tag">{{ item.category.name }}</span>
+                    </div>
+                    <div class="menu-content">
+                        <h3 class="menu-title">{{ item.name }}</h3>
+                        <p class="menu-desc">{{ item.description|truncatechars:90 }}</p>
+                        <div class="menu-footer">
+                            <span class="menu-price">₹{{ item.price }}</span>
+                            <form action="{% url 'cart:cart_add' item.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-primary btn-add-cart">
+                                    <i class="fa-solid fa-plus"></i> Add to Cart
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="menu-empty-state">
+                    <i class="fa-solid fa-plate-wheat"></i>
+                    <h2>No items found</h2>
+                    <p>This category is being updated. Check back soon!</p>
+                    <a href="{% url 'menu:menu_list' %}" class="btn btn-outline">View All Items</a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Suggest Category Modal -->
+<div class="modal-overlay" id="suggest-modal">
+    <div class="modal-content">
+        <button class="modal-close" id="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        
+        <div id="modal-form-container">
+            <div class="modal-header">
+                <i class="fa-solid fa-lightbulb modal-header-icon"></i>
+                <h2>Suggest a Category</h2>
+                <p>Have a favorite category in mind? Let us know, and we might add it next!</p>
+            </div>
+            <form id="suggest-category-form" class="modal-form">
+                <div class="form-group">
+                    <label for="suggest-name">Category Name</label>
+                    <input type="text" id="suggest-name" placeholder="e.g. Mexican, Sushi, Desserts" required>
+                </div>
+                <div class="form-group">
+                    <label for="suggest-desc">Brief Description</label>
+                    <textarea id="suggest-desc" rows="3" placeholder="What kind of items should be in this category?" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="suggest-icon">Suggested Icon (Optional)</label>
+                    <input type="text" id="suggest-icon" placeholder="e.g. pepper, pizza-slice, cupcake">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Submit Suggestion</button>
+            </form>
+        </div>
+
+        <div class="modal-success-state" id="modal-success-state">
+            <i class="fa-solid fa-circle-check success-icon"></i>
+            <h3>Thank You!</h3>
+            <p>Your suggestion for <strong id="success-category-name"></strong> has been submitted. Our chefs will look into adding it soon!</p>
+            <button class="btn btn-primary btn-block" id="success-close-btn">Done</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('suggest-modal');
+        const suggestBtn = document.getElementById('btn-suggest-category');
+        const closeBtn = document.getElementById('modal-close');
+        const successCloseBtn = document.getElementById('success-close-btn');
+        const suggestForm = document.getElementById('suggest-category-form');
+        const formContainer = document.getElementById('modal-form-container');
+        const successState = document.getElementById('modal-success-state');
+        const successCatName = document.getElementById('success-category-name');
+
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            formContainer.style.display = 'block';
+            successState.classList.remove('active');
+            suggestForm.reset();
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        suggestBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        successCloseBtn.addEventListener('click', closeModal);
+
+        // Close when clicking outside content
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        suggestForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const categoryName = document.getElementById('suggest-name').value;
+            
+            // Set dynamic success text
+            successCatName.textContent = `"${categoryName}"`;
+            
+            // Show success screen with animation
+            formContainer.style.display = 'none';
+            successState.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

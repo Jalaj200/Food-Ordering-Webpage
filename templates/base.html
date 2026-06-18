@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Crave | Food Ordering{% endblock %}</title>
+    <!-- Add FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.5">
+</head>
+<body>
+    <nav class="navbar">
+        <!-- Left Section: Brand & Nav Links -->
+        <div class="nav-left">
+            <a href="{% url 'menu:menu_list' %}" class="nav-brand">
+                <i class="fa-solid fa-burger"></i> Crave.
+            </a>
+            <div class="nav-menu" id="nav-menu">
+                <a href="{% url 'menu:menu_list' %}" class="nav-link {% if request.path == '/' and not selected_category and not search_query %}active{% endif %}">Home</a>
+                <a href="{% url 'menu:menu_list' %}" class="nav-link">Menu</a>
+                <a href="#offers" class="nav-link">Offers</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+        </div>
+
+        <!-- Center Section: Search Bar -->
+        <div class="nav-center">
+            <form action="{% url 'menu:menu_list' %}" method="get" class="nav-search-form">
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" name="search" placeholder="Search food, restaurants, or cuisines..." value="{{ search_query|default:'' }}">
+                    {% if search_query %}
+                    <a href="{% url 'menu:menu_list' %}" class="search-clear-btn"><i class="fa-solid fa-xmark"></i></a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Section: User & Cart Actions -->
+        <div class="nav-right">
+            {% if user.is_authenticated %}
+                <div class="user-dropdown-wrapper" style="position: relative; display: inline-block;">
+                    <a href="#" class="nav-user-btn" id="userMenuBtn" style="gap: 0.5rem; display: flex; align-items: center;">
+                        <div style="width: 35px; height: 35px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem;">
+                            {{ user.first_name|default:user.username|make_list|first|upper }}
+                        </div>
+                        <span>Hi, {{ user.first_name|default:user.username }}</span>
+                        <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem;"></i>
+                    </a>
+                    
+                    <div class="user-dropdown-menu" id="userDropdown" style="display: none; position: absolute; right: 0; top: 120%; background: white; border-radius: var(--radius-sm); box-shadow: var(--shadow-hover); min-width: 180px; z-index: 1000; padding: 0.5rem 0; border: 1px solid var(--border-color);">
+                        <a href="{% url 'users:profile' %}?tab=profile" style="display: block; padding: 0.75rem 1.5rem; color: var(--text-primary); transition: background 0.2s;"><i class="fa-regular fa-circle-user" style="margin-right: 0.5rem;"></i> My Profile</a>
+                        <a href="{% url 'users:profile' %}?tab=orders" style="display: block; padding: 0.75rem 1.5rem; color: var(--text-primary); transition: background 0.2s;"><i class="fa-solid fa-clock-rotate-left" style="margin-right: 0.5rem;"></i> Order History</a>
+                        <div style="height: 1px; background: var(--border-color); margin: 0.5rem 0;"></div>
+                        <a href="{% url 'users:logout' %}" style="display: block; padding: 0.75rem 1.5rem; color: var(--primary-color); transition: background 0.2s;"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 0.5rem;"></i> Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'users:login' %}" class="nav-user-btn">
+                    <i class="fa-regular fa-user"></i>
+                    <span>Sign In</span>
+                </a>
+                <a href="{% url 'users:register' %}" class="nav-user-btn" style="background: var(--primary-light); color: var(--primary-color); padding: 0.5rem 1rem; border-radius: var(--radius-sm);">
+                    Sign Up
+                </a>
+            {% endif %}
+            <div class="cart-wrapper" id="cart-wrapper">
+                <a href="{% url 'cart:cart_detail' %}" class="cart-icon-wrapper" aria-label="Cart">
+                    <i class="fa-solid fa-bag-shopping"></i> 
+                    {% if cart|length > 0 %}
+                    <span class="cart-badge">{{ cart|length }}</span>
+                    {% endif %}
+                </a>
+                
+                <!-- Cart Dropdown Preview -->
+                <div class="cart-dropdown" id="cart-dropdown">
+                    {% if cart|length > 0 %}
+                    <div class="cart-dropdown-header">
+                        <h3>My Cart</h3>
+                        <span class="cart-item-count">{{ cart|length }} item{{ cart|length|pluralize }}</span>
+                    </div>
+                    <div class="cart-dropdown-items">
+                        {% for item in cart %}
+                        <div class="cart-dropdown-item">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-img">
+                            {% else %}
+                            <div class="cart-item-img-placeholder">
+                                <i class="fa-solid {{ item.product.category.icon }}"></i>
+                            </div>
+                            {% endif %}
+                            <div class="cart-item-details">
+                                <span class="cart-item-name">{{ item.product.name }}</span>
+                                <span class="cart-item-meta">{{ item.quantity }} &times; ₹{{ item.price }}</span>
+                            </div>
+                            <span class="cart-item-total">₹{{ item.total_price }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="cart-dropdown-footer">
+                        <div class="cart-dropdown-subtotal">
+                            <span>Subtotal</span>
+                            <strong>₹{{ cart.get_total_price }}</strong>
+                        </div>
+                        <div class="cart-dropdown-actions">
+                            <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline btn-block">View Cart</a>
+                            <a href="{% url 'orders:order_create' %}" class="btn btn-primary btn-block">Checkout</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="cart-dropdown-empty">
+                        <i class="fa-solid fa-bag-shopping"></i>
+                        <p>Your cart is empty</p>
+                        <span>Add delicious dishes to get started!</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <button class="nav-mobile-toggle" id="nav-mobile-toggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Crave Food Ordering. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('nav-mobile-toggle');
+            const navMenu = document.getElementById('nav-menu');
+
+            toggleBtn.addEventListener('click', function() {
+                navMenu.classList.toggle('active');
+                const icon = toggleBtn.querySelector('i');
+                if (icon.classList.contains('fa-bars')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-xmark');
+                } else {
+                    icon.classList.remove('fa-xmark');
+                    icon.classList.add('fa-bars');
+                }
+            });
+
+            // User Dropdown logic
+            const userMenuBtn = document.getElementById('userMenuBtn');
+            const userDropdown = document.getElementById('userDropdown');
+            if (userMenuBtn && userDropdown) {
+                userMenuBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (userDropdown.style.display === 'none') {
+                        userDropdown.style.display = 'block';
+                    } else {
+                        userDropdown.style.display = 'none';
+                    }
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                        userDropdown.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
