@@ -37,23 +37,9 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-env_allowed_hosts = os.environ.get('ALLOWED_HOSTS')
-if env_allowed_hosts:
-    ALLOWED_HOSTS = env_allowed_hosts.split(',')
-else:
-    ALLOWED_HOSTS = [
-        "crave-food-app.onrender.com",
-        "localhost",
-        "127.0.0.1",
-    ]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'crave-food-app.onrender.com,localhost,127.0.0.1').split(',')]
 
-env_csrf_trusted = os.environ.get('CSRF_TRUSTED_ORIGINS')
-if env_csrf_trusted:
-    CSRF_TRUSTED_ORIGINS = env_csrf_trusted.split(',')
-else:
-    CSRF_TRUSTED_ORIGINS = [
-        "https://crave-food-app.onrender.com",
-    ]
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://crave-food-app.onrender.com').split(',')]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
