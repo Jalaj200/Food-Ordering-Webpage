@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us | Crave{% endblock %}
+
+{% block content %}
+<style>
+    .contact-header {
+        text-align: center;
+        margin: 3rem 0;
+    }
+    .contact-header h1 {
+        font-size: 2.5rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+    .contact-header p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .contact-wrapper {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 3rem;
+        margin-bottom: 4rem;
+    }
+
+    /* Contact Form Styles */
+    .contact-form-container {
+        background: white;
+        padding: 2.5rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .contact-form-container h2 {
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .btn-submit {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+        width: 100%;
+    }
+
+    .btn-submit:hover {
+        background: #d62828;
+    }
+
+    .btn-submit:active {
+        transform: scale(0.98);
+    }
+
+    /* Contact Info Styles */
+    .contact-info-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .info-card {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-icon {
+        width: 45px;
+        height: 45px;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .info-content h4 {
+        margin: 0 0 0.25rem 0;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+    }
+
+    .info-content p {
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    /* Map Placeholder */
+    .map-placeholder {
+        background: #e9ecef;
+        border-radius: var(--radius-lg);
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid var(--border-color);
+    }
+
+    .map-placeholder iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    /* FAQ Section */
+    .faq-section {
+        margin-top: 4rem;
+        margin-bottom: 4rem;
+    }
+
+    .faq-section h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+    }
+
+    .faq-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .faq-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s;
+    }
+
+    .faq-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .faq-question {
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .faq-question i {
+        color: var(--primary-color);
+        margin-right: 0.8rem;
+    }
+
+    .faq-answer {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        padding-left: 1.8rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .contact-wrapper {
+            grid-template-columns: 1fr;
+        }
+        .faq-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="contact-header">
+    <h1>Get in Touch</h1>
+    <p>We'd love to hear from you! Whether you have a question about our menu, delivery, or just want to share feedback, drop us a message.</p>
+</div>
+
+<div class="contact-wrapper">
+    <!-- Contact Form -->
+    <div class="contact-form-container">
+        <h2>Send us a Message</h2>
+        <form action="{% url 'menu:contact' %}" method="post">
+            {% csrf_token %}
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="+91 9876543210" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="john@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" class="form-control" placeholder="How can we help you?" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" class="form-control" placeholder="Write your message here..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-paper-plane" style="margin-right: 0.5rem;"></i> Send Message
+            </button>
+        </form>
+    </div>
+
+    <!-- Contact Info & Map -->
+    <div class="contact-info-container">
+        <div class="info-card">
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa-solid fa-location-dot"></i>
+                </div>
+                <div class="info-content">
+                    <h4>Our Location</h4>
+                    <p>Ahmedabad, Gujarat, India</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div class="info-content">
+                    <h4>Email Us</h4>
+                    <p>support@cravefood.com</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa-solid fa-phone"></i>
+                </div>
+                <div class="info-content">
+                    <h4>Call Us</h4>
+                    <p>+91 9876543210</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="info-content">
+                    <h4>Working Hours</h4>
+                    <p>Everyday: 9 AM &ndash; 11 PM</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-placeholder">
+            <!-- Using a standard Google Maps Embed pointing to Ahmedabad -->
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117506.11434381864!2d72.49862785721864!3d23.02049777134375!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e848aba5bd449%3A0x4fcedd11614f6516!2sAhmedabad%2C%20Gujarat!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Section -->
+<div class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-grid">
+        <div class="faq-card">
+            <div class="faq-question">
+                <i class="fa-solid fa-circle-question"></i>
+                What are your delivery hours?
+            </div>
+            <div class="faq-answer">
+                We deliver from 9:00 AM to 11:00 PM every day, including weekends and public holidays.
+            </div>
+        </div>
+
+        <div class="faq-card">
+            <div class="faq-question">
+                <i class="fa-solid fa-circle-question"></i>
+                How long does delivery usually take?
+            </div>
+            <div class="faq-answer">
+                Standard delivery time is between 30-45 minutes depending on your location and traffic conditions.
+            </div>
+        </div>
+
+        <div class="faq-card">
+            <div class="faq-question">
+                <i class="fa-solid fa-circle-question"></i>
+                Do you charge for delivery?
+            </div>
+            <div class="faq-answer">
+                We offer FREE delivery on all orders above ₹499. For orders below ₹499, a nominal delivery fee of ₹40 is applied.
+            </div>
+        </div>
+
+        <div class="faq-card">
+            <div class="faq-question">
+                <i class="fa-solid fa-circle-question"></i>
+                Can I cancel or modify my order?
+            </div>
+            <div class="faq-answer">
+                Orders can be cancelled or modified within 5 minutes of placing them. After that, the restaurant begins preparation.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

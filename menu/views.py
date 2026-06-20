@@ -39,3 +39,19 @@ def category_detail(request, slug):
         'items': items,
         'categories': categories,
     })
+
+def offers(request):
+    return render(request, 'offers.html')
+
+from django.contrib import messages
+
+def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        # Here we would normally save to DB or send email
+        messages.success(request, 'Thank you for contacting us! We will get back to you shortly.')
+    return render(request, 'contact.html')
