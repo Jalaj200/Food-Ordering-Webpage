@@ -26,18 +26,34 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-)_1@@b4s@g)&%mw7d0q_*1mw$9_fqdsmjvptt^i_97(k2s5tf3')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if os.environ.get('DEBUG', 'False').lower() == 'true':
+        # Development-only fallback
+        SECRET_KEY = 'django-insecure-development-only-key-do-not-use-in-production'
+    else:
+        raise ValueError("SECRET_KEY environment variable is required in production!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
-if DEBUG and not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ['*']
+env_allowed_hosts = os.environ.get('ALLOWED_HOSTS')
+if env_allowed_hosts:
+    ALLOWED_HOSTS = env_allowed_hosts.split(',')
+else:
+    ALLOWED_HOSTS = [
+        "food-ordering-webpage.onrender.com",
+        "localhost",
+        "127.0.0.1",
+    ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://food-ordering-webpage.onrender.com",
+]
 
 # Production Security Settings
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
