@@ -42,14 +42,18 @@ if env_allowed_hosts:
     ALLOWED_HOSTS = env_allowed_hosts.split(',')
 else:
     ALLOWED_HOSTS = [
-        "food-ordering-webpage.onrender.com",
+        "crave-food-app.onrender.com",
         "localhost",
         "127.0.0.1",
     ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://food-ordering-webpage.onrender.com",
-]
+env_csrf_trusted = os.environ.get('CSRF_TRUSTED_ORIGINS')
+if env_csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = env_csrf_trusted.split(',')
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        "https://crave-food-app.onrender.com",
+    ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -60,6 +64,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 # Application definition
@@ -201,3 +208,8 @@ LOGGING = {
         },
     },
 }
+
+# Authentication Redirects
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = 'menu:menu_list'
+LOGOUT_REDIRECT_URL = 'menu:menu_list'
