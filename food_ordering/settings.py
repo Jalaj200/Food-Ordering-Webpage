@@ -51,6 +51,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://food-ordering-webpage.onrender.com",
 ]
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # Production Security Settings
 if not DEBUG:
     SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
