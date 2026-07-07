@@ -17,7 +17,7 @@
             </a>
             <div class="nav-menu" id="nav-menu">
                 <a href="{% url 'menu:menu_list' %}" class="nav-link {% if request.path == '/' and not selected_category and not search_query %}active{% endif %}">Home</a>
-                <a href="{% url 'menu:menu_list' %}" class="nav-link">Menu</a>
+                <a href="{% if request.path == '/' %}#menu-items-section{% else %}{% url 'menu:menu_list' %}#menu-items-section{% endif %}" class="nav-link">Menu</a>
                 <a href="{% url 'menu:offers' %}" class="nav-link {% if request.path == '/offers/' %}active{% endif %}">Offers</a>
                 <a href="{% url 'menu:contact' %}" class="nav-link {% if request.path == '/contact/' %}active{% endif %}">Contact</a>
             </div>
@@ -142,6 +142,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId !== '#') {
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            e.preventDefault();
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                            history.pushState(null, '', targetId);
+                            
+                            // Close mobile menu if open
+                            const navMenu = document.getElementById('nav-menu');
+                            if (navMenu && navMenu.classList.contains('active')) {
+                                document.getElementById('nav-mobile-toggle').click();
+                            }
+                        }
+                    }
+                });
+            });
+
             const toggleBtn = document.getElementById('nav-mobile-toggle');
             const navMenu = document.getElementById('nav-menu');
 

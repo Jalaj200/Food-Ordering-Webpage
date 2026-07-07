@@ -207,6 +207,61 @@
             formContainer.style.display = 'none';
             successState.classList.add('active');
         });
+
+        // Category Filtering via AJAX to prevent full page reload
+        const filterBar = document.querySelector('.category-filter-bar');
+        if (filterBar) {
+            filterBar.addEventListener('click', function(e) {
+                const pill = e.target.closest('.category-pill');
+                if (pill) {
+                    e.preventDefault();
+                    const url = pill.getAttribute('href');
+                    
+                    // Add loading state to menu container if desired
+                    const mainContent = document.querySelector('.menu-main-content');
+                    if (mainContent) {
+                        mainContent.style.opacity = '0.5';
+                    }
+
+                    fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Update main content
+                        const newContent = doc.querySelector('.menu-main-content');
+                        if (newContent && mainContent) {
+                            mainContent.innerHTML = newContent.innerHTML;
+                            mainContent.style.opacity = '1';
+                        }
+                        
+                        // Update active state on pills
+                        document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                        pill.classList.add('active');
+                        
+                        // Update URL
+                        history.pushState({ path: url }, '', url);
+                    })
+                    .catch(err => {
+                        console.error('Error fetching category:', err);
+                        if (mainContent) mainContent.style.opacity = '1';
+                    });
+                }
+            });
+        }
+
+        // Handle browser back/forward buttons for SPA state
+        window.addEventListener('popstate', function(e) {
+            if (window.location.hash && !e.state) {
+                return; // Ignore hash-only navigation
+            }
+            window.location.reload();
+        });
     });
 </script>
 {% endblock %}
